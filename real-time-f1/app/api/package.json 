@@ -1,0 +1,7 @@
+{
+  "name": "api",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": ".\\.venv\\Scripts\\python run.py",
+  }
+}
