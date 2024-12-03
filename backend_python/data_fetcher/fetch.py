@@ -171,7 +171,7 @@ class F1DataFetcher:
                 param_str = "&".join([f"{k}={v}" for k,v in params.items()])
                 url = f"{url}?{param_str}"
             
-            # print(f'Fetching data from URL: {url}')
+            print(f'Fetching data from URL: {url}')
             response = self.session.get(
                 url,
                 timeout=30
@@ -187,3 +187,11 @@ class F1DataFetcher:
             raise
         except requests.RequestException as e:
             raise
+
+
+    # def run_post_fetch_tasks(self, endpoint: EndpointType):
+    #     if endpoint == EndpointType.CAR_DATA:
+    #         self.db.avg_speed_by_driver_per_second(datetime.now(timezone.utc).replace(microsecond=0))
+    #     pass
+
+

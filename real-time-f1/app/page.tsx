@@ -16,7 +16,7 @@ export default function Home() {
     return (
         <div>
             <h1>Real-Time F1</h1>
-            <pre>{JSON.stringify(data, null, 2)}</pre>
+            <pre>driver: {data.driver_number} speed: {data.avg_speed}</pre>
             <p>{error}</p>
         </div>
     );

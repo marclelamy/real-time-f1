@@ -107,3 +107,24 @@ class QuestDBClient:
             print(f"Error creating tables: {e}")
             # time.sleep(10)
             return False
+
+
+
+    
+    def avg_speed_by_driver_per_second(): 
+        result = self.db.query(
+            '''
+            
+            select 
+    driver_number,
+    CAST(date as TIMESTAMP) as seconds,
+    avg(speed) as avg_speed
+from car_data
+where 1=1
+            group by driver_number, CAST(EXTRACT_EPOCH(date) as BIGINT)
+            order by seconds desc
+            limit 1
+            '''
+        )
+        print(f'Result: {result}')
+        return result

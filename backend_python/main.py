@@ -8,7 +8,7 @@ from data_fetcher.fetch import F1DataFetcher, EndpointType
 START_TIME = datetime.strptime("2024-12-01 16:10:00 UTC", "%Y-%m-%d %H:%M:%S %Z")
 IS_REAL_TIME = False
 DELETE_DATA_ON_START = True
-NUMBER_OF_SECONDS_TO_FETCH = 10
+NUMBER_OF_SECONDS_TO_FETCH = 1
 
 
 def main():
