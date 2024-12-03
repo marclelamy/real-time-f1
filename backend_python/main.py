@@ -5,13 +5,18 @@ from db.client import QuestDBClient
 from data_fetcher.fetch import F1DataFetcher, EndpointType
 
 # Base start time for fetching data
-START_TIME = datetime.strptime("2024-12-01 17:10:00 UTC", "%Y-%m-%d %H:%M:%S %Z")
+START_TIME = datetime.strptime("2024-12-01 16:10:00 UTC", "%Y-%m-%d %H:%M:%S %Z")
 IS_REAL_TIME = False
+DELETE_DATA_ON_START = True
+NUMBER_OF_SECONDS_TO_FETCH = 10
 
 
 def main():
     db = QuestDBClient()
     fetcher = F1DataFetcher(db, START_TIME, IS_REAL_TIME)
+    if DELETE_DATA_ON_START:
+        if input("Are you sure you want to delete all data? (y/n): ") == "y":
+            db.delete_data(recreate_schema=True)
     
     # Get latest session info
     latest_session = fetcher.fetch(EndpointType.SESSIONS, {
@@ -26,7 +31,7 @@ def main():
             try:
                 # Check and make requests for each endpoint based on cadence
                 loop_enpoint_type_start_time = time.time()
-                for endpoint_type in [EndpointType.CAR_DATA]: # EndpointType:
+                for endpoint_type in [EndpointType.CAR_DATA]:#EndpointType:
                     start_time = time.time()
                     # print(f'Checking if enough time has passed since last request for {endpoint_type.endpoint}')
                     is_allowed_to_request = fetcher.enough_time_has_passed_since_last_request(endpoint_type)
@@ -35,7 +40,7 @@ def main():
                         is_allowed_to_request = fetcher.enough_time_has_passed_since_last_request(endpoint_type)
 
                     # if is_allowed_to_request:
-                    window_end = fetcher.current_time + timedelta(seconds=1)
+                    window_end = fetcher.current_time + timedelta(seconds=NUMBER_OF_SECONDS_TO_FETCH)
                     # print(f'Fetching data for {endpoint_type.endpoint} from {fetcher.current_time} to {window_end}')
                     
                     # Only add session_key param for endpoints that accept it
@@ -43,7 +48,7 @@ def main():
                     if "session_key" in endpoint_type.config["params"]:
                         params["session_key"] = session_key
                     
-                    print(f'Fetching data for {endpoint_type} with params: {params}')
+                    # print(f'Fetching data for {endpoint_type} with params: {params}')
                     data = fetcher.fetch(
                         endpoint_type,
                         params,
@@ -56,11 +61,11 @@ def main():
                         fetcher.log_request(endpoint_type, len(data))
                     # print(f'Logged request for {endpoint_type.endpoint}')
 
-                    print(f'Fetching data for {endpoint_type.endpoint} with params: {params} length: {len(data)} time: {time.time() - start_time}')
+                    # print(f'Fetching data for {endpoint_type.endpoint} with params: {params} length: {len(data)} time: {time.time() - start_time}')
                 
                 # Advance simulation time by smallest cadence (0.5 seconds)
-                fetcher.advance_time(1)
-                print(f'Advanced time to {fetcher.current_time}')
+                fetcher.advance_time(NUMBER_OF_SECONDS_TO_FETCH)
+                # print(f'Advanced time to {fetcher.current_time}')
                 
             except Exception as e:
                 print(f"Error fetching data: {e}")

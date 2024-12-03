@@ -1,7 +1,9 @@
 from questdb.ingress import Sender, TimestampNanos
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import datetime
+import time
+
 
 class QuestDBClient:
     def __init__(self, host='localhost', port=9000, username='admin', password='quest'):
@@ -14,17 +16,6 @@ class QuestDBClient:
     def insert_dataframe(self, data: list, table_name: str, timestamp_column=None):
         """Insert a list of JSON records into QuestDB by converting them to individual rows"""
         try:
-            # First ensure table exists
-            with self.engine.connect() as conn:
-                # Create table if it doesn't exist, with WAL enabled
-                create_table_query = f"""
-                CREATE TABLE IF NOT EXISTS {table_name} (
-                    timestamp TIMESTAMP,
-                    PRIMARY KEY(timestamp)
-                );
-                """
-                conn.execute(create_table_query)
-
             with Sender.from_conf(self.write_conf) as sender:
                 # Insert each record from the JSON array
                 for record in data:
@@ -75,3 +66,44 @@ class QuestDBClient:
         except Exception as e:
             print(f"Query error: {e}")
             return pd.DataFrame()
+
+    def delete_data(self, recreate_schema: bool = False):
+        """Delete data from QuestDB before a given timestamp"""
+        self.query("DROP ALL TABLES")
+        if recreate_schema:
+            self.create_tables_from_schema()
+
+
+
+    def create_tables_from_schema(self):
+        """Create tables from schema file"""
+        try:
+            # Read schema file
+            with open('table-schema.sql', 'r') as f:
+                schema = f.read()
+            
+            # print(schema)
+            
+            # Split into individual statements
+            statements = [s.strip() for s in schema.split(';') if s.strip()]
+            # print(statements)
+            
+            with self.engine.connect() as conn:
+                for statement in statements:
+                    # Remove comments and join lines
+                    statement = ' '.join([line for line in statement.splitlines() if not line.strip().startswith('--')]) + ';'
+                    # print('CREATING TABLE:', statement)
+                    try:
+                        conn.execute(text(statement))
+                        conn.commit()
+                    except Exception as e:
+                        print(f"Error executing statement: {e}")
+                        continue
+
+            print("Tables created successfully")
+            # time.sleep(10)
+            return True
+        except Exception as e:
+            print(f"Error creating tables: {e}")
+            # time.sleep(10)
+            return False

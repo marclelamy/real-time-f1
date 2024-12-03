@@ -18,7 +18,7 @@ class EndpointType(Enum):
     INTERVALS = ("intervals", {
         "params": ["session_key", "driver_number", "interval", "gap_to_leader"],
         "date_field": "date",
-        "cadence": 4
+        "cadence": 0
     })
     LAPS = ("laps", {
         "params": ["session_key", "driver_number", "lap_number", "is_pit_out_lap"],
@@ -148,35 +148,38 @@ class F1DataFetcher:
                     last_date_df = self.db.query(last_date_query)
                     
                     if not last_date_df.empty and last_date_df['last_date'].iloc[0] is not None:
-                        last_date = last_date_df['last_date'].iloc[0]
-                        # Add 1 second to last date
-                        start_date = (last_date + timedelta(seconds=1)).isoformat()
+                        start_date = last_date_df['last_date'].iloc[0]
                         
                         if date_field == "date":
-                            params['date>='] = start_date
+                            params['date>'] = start_date
                         elif date_field == "date_start":
-                            params['date_start>='] = start_date
+                            params['date_start>'] = start_date
                 else:
                     if date_field == "date":
                         if date_start:
-                            params['date>='] = date_start
+                            params['date>'] = date_start
                         if date_end:
-                            params['date<='] = date_end
+                            params['date<'] = date_end
                     elif date_field == "date_start":
                         if date_start:
-                            params['date_start>='] = date_start
+                            params['date_start>'] = date_start
                         if date_end:
-                            params['date_end<='] = date_end
+                            params['date_end<'] = date_end
+            # Build URL with params
+            url = f"{self.base_url}/{endpoint.endpoint}"
+            if params:
+                param_str = "&".join([f"{k}={v}" for k,v in params.items()])
+                url = f"{url}?{param_str}"
             
-            print(f'Fetching data for {self.base_url}/{endpoint.endpoint} with params: {params}')
+            # print(f'Fetching data from URL: {url}')
             response = self.session.get(
-                f"{self.base_url}/{endpoint.endpoint}",
-                params=params,
+                url,
                 timeout=30
             )
             response.raise_for_status()
-            
+
             time_info = f" between {date_start[11:19]} and {date_end[11:19]}" if date_start and date_end else ""
+            print(f'Fetched {len(response.json())} records for {endpoint.endpoint} {time_info}')
             return response.json()
         except requests.HTTPError as e:
             if e.response.status_code == 429:
