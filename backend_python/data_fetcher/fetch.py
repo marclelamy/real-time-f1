@@ -51,9 +51,11 @@ class EndpointType(Enum):
         "cadence": 5
     })
     SESSIONS = ("sessions", {
-        "params": ["country_name", "session_name", "year", "session_key"],
-        "date_field": "date_start",  # Sessions use date_start/date_end
-        "cadence": None  # No regular refresh needed
+        "params": ["circuit_key", "circuit_short_name", "country_code", "country_key", "country_name", 
+                  "session_name", "session_type", "year", "session_key", "meeting_key", "location", 
+                  "gmt_offset"],
+        "date_field": "date_start",  # Sessions use date_start/date_end for filtering
+        "cadence": None  # No regular refresh needed as session data is static
     })
     STINTS = ("stints", {
         "params": ["session_key", "driver_number", "compound", "tyre_age_at_start"],

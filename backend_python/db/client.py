@@ -12,7 +12,7 @@ class QuestDBClient:
         # PostgreSQL connection for reads
         self.read_url = f"postgresql://{username}:{password}@{host}:8812/qdb"
         self.engine = create_engine(self.read_url)
-
+                                                                                                                                                                                          
     def insert_dataframe(self, data: list, table_name: str, timestamp_column=None):
         """Insert a list of JSON records into QuestDB by converting them to individual rows"""
         try:
